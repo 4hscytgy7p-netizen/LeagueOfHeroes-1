@@ -2,6 +2,10 @@ export const familiarIds = ['bat-xmm', 'cat-xmm', 'frog-xmm', 'hawk-xmm', 'lizar
 export const pactFamiliarIds = ['imp-xmm', 'pseudodragon-xmm', 'quasit-xmm', 'skeleton-xmm', 'slaad-tadpole-xmm', 'sphinx-of-wonder-xmm', 'sprite-xmm', 'venomous-snake-xmm'];
 export const familiarNote = 'Показаны базовые формы животных, перечисленные в заклинании. Фамильяр становится Небожителем, Феей или Исчадием вместо Зверя и не может атаковать без специальной способности. Другие звери с ПО 0 тоже допустимы по правилам заклинания.';
 export const spellStatBlocks: Record<string, { ids: string[]; note?: string }> = {
+  'battle-familiar': { ids: ['battle-familiar-au'], note: 'Форму выбирают при сотворении. При усилении существующего фамильяра сохраняются исключения, перечисленные в заклинании; Хиты из блока становятся Временными хитами.' },
+  'summon-dinosaur': { ids: ['dinosaur-spirit-au'] },
+  'summon-plant': { ids: ['plant-spirit-au'] },
+  'negative-energy-flood': { ids: ['zombie-xmm'], note: 'Убитый заклинанием Гуманоид поднимается в начале следующего хода заклинателя и выполняет его устные приказы в течение 24 часов.' },
   'summon-the-thing-with-the-writhing-tail': { ids: ['thing-with-the-writhing-tail-scgtd'] },
   'find-familiar': { ids: familiarIds, note: familiarNote },
   'flock-of-familiars': { ids: familiarIds, note: familiarNote },

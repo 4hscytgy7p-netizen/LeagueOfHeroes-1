@@ -129,7 +129,7 @@ import '../../styles/gameStats.css';
 
         <section class="stats-panel" aria-labelledby="stats-parties-title">
           <div class="stats-section-heading">
-            <div><h2 id="stats-parties-title" tabindex="-1">Партии</h2><p class="stats-muted">Номер обозначает строку источника. Даты партий в источнике не указаны.</p></div>
+            <div><h2 id="stats-parties-title" tabindex="-1">Партии</h2><p class="stats-muted">Номер обозначает строку источника. Дата и время публикации отчёта показаны по Киеву (Europe/Kiev). В старых выгрузках время может отсутствовать.</p></div>
             <div class="stats-party-controls">
               <div class="stats-field"><label for="stats-sort">Сортировка</label><select id="stats-sort"><option value="id">Номер записи</option><option value="gm">Имя мастера</option><option value="playerCount">Число игроков</option><option value="totalProgress">Всего ОП</option></select></div>
               <div class="stats-field"><label for="stats-direction">Порядок</label><select id="stats-direction"><option value="desc">По убыванию</option><option value="asc">По возрастанию</option></select></div>
@@ -140,6 +140,7 @@ import '../../styles/gameStats.css';
               <caption id="stats-parties-caption">Партии выбранной выборки</caption>
               <thead><tr>
                 <th scope="col" data-sort-heading="id"><button type="button" data-sort="id">Запись <span data-sort-indicator="id"></span></button></th>
+                <th scope="col">Опубликовано (Киев)</th>
                 <th scope="col" data-sort-heading="gm"><button type="button" data-sort="gm">Мастер <span data-sort-indicator="gm"></span></button></th>
                 <th scope="col">ОП мастера</th><th scope="col">Игроки и их ОП</th>
                 <th scope="col" data-sort-heading="playerCount"><button type="button" data-sort="playerCount">Игроков <span data-sort-indicator="playerCount"></span></button></th>
@@ -165,6 +166,7 @@ import '../../styles/gameStats.css';
         <p>Каждая запись источника считается одной партией. Участие — присутствие одного игрока в одной партии. Мастер не входит в среднее число игроков.</p>
         <p>ОП — очки прогресса. «Всего ОП» складывает значения мастера и игроков. Фильтр игрока выбирает партии с его участием: в общих графиках и рейтингах остаются все участники этих партий.</p>
         <p>Период: за всё время, представленное в источнике. Время получения данных не является датой последнего изменения источника.</p>
+        <p>«Опубликовано» — день и время исходного сообщения в канале «Игровые записи» Discord. Отчёт может быть опубликован позже самой партии.</p>
       </aside>
     </div>
   </div>

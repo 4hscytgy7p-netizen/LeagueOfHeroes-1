@@ -2,6 +2,7 @@ import type { Creature } from '../../types/creature.ts';
 import { classCompanions } from './classCompanions.ts';
 import { spellCreatures } from './spellCreatures.ts';
 import { drakkenheimCreatures } from './drakkenheim.ts';
+import { au24Creatures } from './au24.ts';
 
 // Verified against the exact 5etools publications; formulas refer to the summoner.
 // All artwork stays on the external host. Art sources are independent from rule editions.
@@ -12,6 +13,7 @@ export const companions: Creature[] = [
   ...classCompanions,
   ...spellCreatures,
   ...drakkenheimCreatures,
+  ...au24Creatures,
   {
     id: 'wildfire-spirit-tce', name: 'Дух дикого огня', nameEn: 'Wildfire Spirit',
     contextLabel: 'Компаньон', calculationNote,

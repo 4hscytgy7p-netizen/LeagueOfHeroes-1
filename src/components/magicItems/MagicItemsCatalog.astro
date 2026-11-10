@@ -1,0 +1,96 @@
+---
+import { magicItems } from '../../data/magicItems';
+import { getPublishedMaterial } from '../../data/materials';
+import { renderMaterialMetadata } from '../../utils/materialPresentation';
+import { craftingTools, rarityLabels, tableLabels, renderMagicItemDetails } from '../../utils/magicItemPresentation';
+import '../../styles/magicItems.css';
+interface Props { initialItemId?: string }
+const { initialItemId } = Astro.props;
+// Direct links render their description immediately; the shared catalog is loaded once in the browser.
+const items = (initialItemId ? magicItems.filter(item => item.id === initialItemId) : magicItems).map(item => ({ ...item, materialMetadataHtml: renderMaterialMetadata(getPublishedMaterial('magic-item', item.id)) }));
+const sortedItems = [...items].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+const selectedItem = items.find(item => item.id === initialItemId);
+const types = [...new Set(items.map(item => item.type.split(',')[0].trim()))].sort((a, b) => a.localeCompare(b, 'ru'));
+const sources = [...new Set(items.map(item => item.source.book))].sort();
+const tools = [...new Set(items.flatMap(item => item.craftingTools))].sort((a, b) => a - b);
+const sourceLabel = (source: string) => getPublishedMaterial('magic-item', items.find(item => item.source.book === source)!.id).sourceInfo.label;
+const columns = [['name', 'Название'], ['type', 'Тип'], ['weight', 'Вес'], ['attunement', 'Настройка'], ['rarity', 'Редкость'], ['source', 'Источник']];
+---
+<div id="magic-catalog" class="magic-catalog" data-view={selectedItem ? 'detail' : 'list'} data-initial-item={initialItemId || ''} data-lazy-catalog={selectedItem ? 'true' : undefined}>
+  <div id="items-data" data-items={JSON.stringify(items)} hidden></div>
+  <header class="catalog-heading">
+    <h1>Магические предметы</h1>
+    <p class="catalog-help"><a href="/general-rules#consumable-components">Расходуемые компоненты заклинаний</a><span aria-hidden="true"> · </span><a href="/rules/equipment#containers">Контейнеры на персонаже</a></p>
+  </header>
+  <div class="magic-workspace">
+    {!selectedItem ? <section class="catalog-list" aria-label="Поиск и список магических предметов">
+      <div class="catalog-toolbar">
+        <div class="catalog-search">
+          <label class="catalog-sr-only" for="item-search">Поиск по русскому или английскому названию</label>
+          <input type="search" id="item-search" placeholder="Название на русском или английском" autocomplete="off" />
+          <button id="clear-search" type="button" aria-label="Очистить поиск" hidden>×</button>
+        </div>
+        <button id="filter-button" type="button" aria-haspopup="dialog" aria-controls="filter-popup" aria-expanded="false">Фильтры <span id="filter-count" hidden>0</span></button>
+        <button id="random-item-btn" type="button" title="Случайный предмет из текущих результатов"><span aria-hidden="true">🎲</span> Случайный предмет</button>
+      </div>
+      <div class="catalog-results-bar">
+        <p id="items-counter" role="status" aria-live="polite" aria-atomic="true">Найдено {items.length} предметов</p>
+        <label class="mobile-sort">Сортировка <select id="mobile-sort" aria-label="Сортировка предметов">{columns.map(([key, label]) => <><option value={`${key}:asc`}>{label} ↑</option><option value={`${key}:desc`}>{label} ↓</option></>)}</select></label>
+      </div>
+      <div id="active-filters" class="active-filters" aria-label="Активные условия поиска" hidden></div>
+      <details class="random-history" id="random-history-panel">
+        <summary>История случайных предметов <span id="random-history-count">(0)</span></summary>
+        <p id="random-item-history-empty">Здесь появятся последние пять случайных результатов.</p>
+        <ol id="random-item-history"></ol>
+      </details>
+      <div class="items-table">
+        <table aria-label="Магические предметы">
+          <thead><tr>{columns.map(([key, label]) => <th scope="col" aria-sort={key === 'name' ? 'ascending' : 'none'}><button type="button" class="sort-button" data-sort={key}>{label}<span class="sort-icon" aria-hidden="true">{key === 'name' ? '↑' : '↕'}</span></button></th>)}</tr></thead>
+          <tbody>{sortedItems.map(item => <tr class:list={['item-row', { active: item.id === initialItemId }]} data-item-id={item.id}>
+            <td class="item-name-cell"><a class="item-name-link" href={`/magic-items/${item.id}`} aria-current={item.id === initialItemId ? 'true' : undefined}><span class="name-main">{item.name}</span><span class="name-en" lang="en">{item.nameEn}</span></a></td>
+            <td class="item-type-cell">{item.type.split(',')[0]}</td>
+            <td class="item-weight-cell">{item.weight}</td>
+            <td class:list={['item-attunement-cell', { 'requires-attunement': item.attunement }]}><span class="desktop-attunement">{item.attunement ? 'Да' : 'Нет'}</span><span class="mobile-attunement">{item.attunement ? 'Требует настройки' : 'Без настройки'}</span></td>
+            <td class="item-rarity-cell"><span class={`rarity ${item.rarity.toLowerCase().replaceAll(' ', '-')}`}>{rarityLabels[item.rarity]}</span></td>
+            <td class="item-source-cell" title={sourceLabel(item.source.book)}>{item.source.book}</td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+      <div id="empty-results" class="empty-results" hidden>
+        <h2>Ничего не найдено</h2><p id="empty-results-message">Попробуйте другое название или измените фильтры.</p>
+        <div><button type="button" data-clear-search>Очистить поиск</button><button type="button" data-reset-all>Сбросить всё</button></div>
+        <p>Случайный выбор недоступен, пока список пуст.</p>
+      </div>
+    </section> : <section class="catalog-list catalog-loading" aria-busy="true"><p>Загрузка каталога…</p><a href="/magic-items">← К списку магических предметов</a></section>}
+    <section id="item-details" class="item-details" aria-label="Описание выбранного предмета">
+      <div class="item-detail-actions" hidden={!selectedItem}>
+        <a id="back-to-results" href="/magic-items">← К результатам</a>
+        <a id="open-item-page" href={selectedItem ? `/magic-items/${selectedItem.id}` : '/magic-items'} target="_blank" rel="noopener">Открыть отдельно ↗<span class="catalog-sr-only"> (в новой вкладке)</span></a>
+        <button id="copy-item-link" type="button">Скопировать ссылку</button>
+      </div>
+      <p id="copy-link-status" class="catalog-action-status" role="status" aria-live="polite"></p>
+      <div id="item-details-body">{selectedItem ? <Fragment set:html={renderMagicItemDetails(selectedItem)} /> : <div class="item-placeholder"><h2>Выберите предмет</h2><p>Откройте запись в списке, чтобы прочитать свойства, требования настройки и сведения об изготовлении.</p></div>}</div>
+    </section>
+  </div>
+  {!selectedItem && <dialog id="filter-popup" class="magic-filter-dialog" aria-labelledby="filter-title">
+    <div class="filter-shell">
+      <header class="filter-header"><h2 id="filter-title">Фильтры предметов</h2><button type="button" data-reset-filters>Сбросить фильтры</button><button type="button" id="close-filters" aria-label="Закрыть фильтры" autofocus>×</button></header>
+      <div class="filter-body">
+        <p class="filter-hint">Значения внутри группы работают как «или», разные группы — как «и». Результаты обновляются сразу.</p>
+        <fieldset><legend>Редкость</legend><div class="filter-options">{Object.entries(rarityLabels).map(([value, label]) => <label><input type="checkbox" name="rarity" value={value} />{label}</label>)}</div></fieldset>
+        <fieldset><legend>Тип предмета</legend><div class="filter-options">{types.map(type => <label><input type="checkbox" name="type" value={type} />{type}</label>)}</div></fieldset>
+        <fieldset><legend>Настройка</legend><div class="filter-options"><label><input type="checkbox" name="attunement" value="true" />Требует настройки</label><label><input type="checkbox" name="attunement" value="false" />Не требует настройки</label></div></fieldset>
+        <fieldset><legend>Источник</legend><label class="filter-search-label" for="source-search">Найти источник</label><input type="search" id="source-search" data-option-search="source-options" placeholder="Код или название книги" /><div class="filter-options filter-options-scroll" id="source-options">{sources.map(source => <label data-search-text={`${source} ${sourceLabel(source)}`}><input type="checkbox" name="source" value={source} /><span><strong>{source}</strong><small class="filter-source-name">{sourceLabel(source)}</small></span></label>)}</div><p data-options-empty="source-options" hidden>Источник не найден. Выбранные условия сохранены.</p></fieldset>
+        <details class="additional-filters"><summary>Дополнительные фильтры <span id="additional-filter-count"></span></summary>
+          <fieldset><legend>Таблица выпадения</legend><div class="filter-options">{Object.entries(tableLabels).map(([value, label]) => <label><input type="checkbox" name="table" value={value} />{label}</label>)}</div></fieldset>
+          <fieldset><legend>Инструменты для изготовления</legend><label class="filter-search-label" for="tools-search">Найти инструмент</label><input type="search" id="tools-search" data-option-search="tools-options" placeholder="Например, алхимика" /><div class="filter-options filter-options-scroll" id="tools-options">{tools.map(tool => <label><input type="checkbox" name="craftingTools" value={tool} />{craftingTools[tool]}</label>)}</div><p data-options-empty="tools-options" hidden>Инструмент не найден. Выбранные условия сохранены.</p></fieldset>
+        </details>
+      </div>
+      <footer class="filter-footer"><button type="button" data-reset-filters>Сбросить фильтры</button><button type="button" id="show-filter-results" class="catalog-primary-button">Показать {items.length} предметов</button></footer>
+    </div>
+  </dialog>}
+</div>
+<script>
+  import { initializeMagicItems } from '../../scripts/magicItems';
+  initializeMagicItems();
+</script>

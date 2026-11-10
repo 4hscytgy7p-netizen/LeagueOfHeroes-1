@@ -5,6 +5,7 @@ export interface Participant {
 
 export interface Party {
   id: number;
+  publishedAt?: string | null;
   gm: string;
   gmProgress: number;
   players: Participant[];
@@ -59,6 +60,10 @@ function parseCsv(csv: string): Party[] {
 
   return rows.map((rawRow, index) => {
     const columns = rawRow.split(';').map((value) => value.trim());
+    // The bot appends publication metadata after all fixed name/OP pairs.
+    const publication = columns.at(-1)?.startsWith('published_at=') ? columns.pop()!.slice('published_at='.length) : '';
+    const publishedAt = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(publication)
+      && Number.isFinite(Date.parse(publication)) ? publication : null;
     const lastNonEmptyIndex = columns.length - 1 - [...columns].reverse().findIndex((value) => value.length > 0);
     const values = lastNonEmptyIndex >= 0 ? columns.slice(0, lastNonEmptyIndex + 1) : columns;
 
@@ -78,6 +83,7 @@ function parseCsv(csv: string): Party[] {
 
     return {
       id: index + 1,
+      publishedAt,
       gm,
       gmProgress,
       players,
@@ -169,7 +175,7 @@ export function summarizeGameStats(parties: Party[]): GameStatsResult {
           return a.player.localeCompare(b.player, 'ru');
         })
         .slice(0, 10),
-      hasTimeData: false
+      hasTimeData: parties.some(party => Boolean(party.publishedAt))
     }
   };
 }

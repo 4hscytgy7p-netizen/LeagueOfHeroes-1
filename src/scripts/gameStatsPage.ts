@@ -8,6 +8,15 @@ import type { ChartEntry, ChartMetric, PartySort, RankingKind } from '../utils/g
 
 const numbers = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 });
 const percentages = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
+const publicationDates = new Intl.DateTimeFormat('ru-RU', {
+  timeZone: 'Europe/Kiev', day: '2-digit', month: '2-digit', year: 'numeric',
+  hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+});
+
+export function renderStatsPublication(publishedAt?: string | null): string {
+  if (!publishedAt) return '<span class="stats-muted">Не указано</span>';
+  return `<time datetime="${escapeStatsHtml(publishedAt)}">${escapeStatsHtml(publicationDates.format(new Date(publishedAt)))}</time>`;
+}
 const COLORS = ['#7c3aed', '#2563eb', '#0f766e', '#c2410c', '#be185d', '#854d0e', '#64748b'];
 
 function formatChartValue(value: number, unit: string): string {
@@ -191,11 +200,12 @@ export function initializeGameStatsPage() {
       ? `<details class="stats-party-details"><summary>Состав: ${party.playerCount} игроков</summary><ul>${party.players.map(player => `<li><span>${escapeStatsHtml(player.name)}</span><strong>${escapeStatsHtml(numbers.format(player.progress))} ОП</strong></li>`).join('')}</ul></details>`
       : '<span class="stats-muted">Игроки не указаны</span>';
     element('stats-parties-body').innerHTML = page.parties.map(party => `<tr>
-      <th scope="row">#${party.id}</th><td>${escapeStatsHtml(party.gm)}</td><td>${escapeStatsHtml(numbers.format(party.gmProgress))}</td>
+      <th scope="row">#${party.id}</th><td>${renderStatsPublication(party.publishedAt)}</td><td>${escapeStatsHtml(party.gm)}</td><td>${escapeStatsHtml(numbers.format(party.gmProgress))}</td>
       <td>${playersHtml(party)}</td><td>${party.playerCount}</td><td class="stats-numeric">${escapeStatsHtml(numbers.format(party.totalProgress))}</td>
     </tr>`).join('');
     element('stats-party-cards').innerHTML = page.parties.map(party => `<article class="stats-party-card">
       <div class="stats-party-card-heading"><h3>${escapeStatsHtml(party.gm)}</h3><span class="stats-muted">Запись #${party.id}</span></div>
+      <p>Опубликовано: ${renderStatsPublication(party.publishedAt)}</p>
       <dl><div><dt>ОП мастера</dt><dd>${escapeStatsHtml(numbers.format(party.gmProgress))}</dd></div><div><dt>Игроков</dt><dd>${party.playerCount}</dd></div><div><dt>Всего ОП</dt><dd>${escapeStatsHtml(numbers.format(party.totalProgress))}</dd></div></dl>
       ${playersHtml(party)}</article>`).join('');
     element('stats-parties-caption').textContent = `Партии выбранной выборки. Страница ${page.page} из ${page.pages}. Всего ОП включает мастера и игроков.`;

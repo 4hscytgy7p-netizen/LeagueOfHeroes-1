@@ -41,7 +41,7 @@ const abilities = {
             class="search-input"
           />
           <div id="feats-counter" class="feats-counter" role="status" aria-live="polite" aria-atomic="true">0/0</div>
-          <button id="clear-search" class="clear-search-button" style="display: none;">×</button>
+          <button id="clear-search" class="clear-search-button" type="button" aria-label="Очистить поиск" style="display: none;">×</button>
         </div>
         <button id="filter-button" class="filter-button" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="filter-popup">
           <span class="filter-icon">⚙</span>
@@ -673,6 +673,11 @@ const abilities = {
     background: var(--card-bg);
     color: var(--text);
     font-size: 1rem;
+  }
+
+  .search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
   }
 
   .feats-counter {
